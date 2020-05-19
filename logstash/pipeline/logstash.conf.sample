@@ -1,0 +1,33 @@
+input {
+  file {
+    path => "/var/log/httpd/access.log"
+  }
+}
+
+filter {
+  grok {
+    # 参考
+    # https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/grok-patterns
+    # https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/httpd
+    #match => { "message" => "%{COMBINEDAPACHELOG}" }
+    match => { "message" => '%{IPORHOST:remote_host_ip} %{HTTPDUSER:remote_log_name} %{HTTPDUSER:remote_user} \[%{HTTPDATE:received_at}\] \"(?:%{WORD:method} %{NOTSPACE:request_uri}(?: HTTP/%{NUMBER:http_version})?|%{DATA:raw_request_uri})\" %{NUMBER:http_status} (?:%{NUMBER:response_bytes}|-) \"%{NOTSPACE:referrer}\" \"%{DATA:user_agent}\"' }
+    # 個別にfieldにしたから不要
+    remove_field => [ "message" ]
+  }
+  # ログで記録された日時を項目にする
+  date {
+    match => [ "received_at" , "dd/MMM/yyyy:HH:mm:ss Z" ]
+  }
+  # esのindexを日付単位で分けるため一時的なfeildへ格納
+  ruby {
+    code => "event.set('[@metadata][local_time]',event.get('[@timestamp]').time.localtime('+09:00').strftime('%Y.%m.%d'))"
+  }
+}
+
+output {
+	elasticsearch {
+    hosts => "elasticsearch:9200"
+    index => "access-log-%{[@metadata][local_time]}"
+  }
+  stdout { codec => rubydebug }
+}
