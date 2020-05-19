@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  elasticsearch:
+    image: elasticsearch:${VERSION}
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    volumes:
+      # Config
+      #- ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      # Data 
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - elk-net
+
+  kibana:
+    image: kibana:${VERSION}
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    environment:
+      - "I18N_LOCALE=${KIBANA_LOCALE}"
+    ports:
+      - ${KIBANA_PORT}:5601
+    #volumes:
+      # Config
+      #- ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    networks:
+      - elk-net
+
+  logstash:
+    image: logstash:${VERSION}
+    container_name: logstash
+    depends_on:
+      - elasticsearch
+    volumes:
+      # Config
+      #- ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      #- ./logstash/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml
+      # Pipeline
+      - ./logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      # Input Data
+      - ./logstash/input/httpd:${LOGSTASH_INPUT_DATA_PATH}
+    networks:
+      - elk-net
+
+volumes:
+  elasticsearch-data:
+
+networks:
+  elk-net:
