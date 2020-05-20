@@ -14,11 +14,13 @@ filter {
     # 個別にfieldにしたから不要
     remove_field => [ "message" ]
   }
-  # ログで記録された日時を項目にする
+  # ログで記録された日時を項目にする（格納先はtargetで指定が必要。初期値は@timestamp）
   date {
     match => [ "received_at" , "dd/MMM/yyyy:HH:mm:ss Z" ]
   }
   # esのindexを日付単位で分けるため一時的なfeildへ格納
+  # タイムゾーン問題があり以下参考に実装
+  # https://qiita.com/hssh2_bin/items/0c4cbd1157ea230549a9
   ruby {
     code => "event.set('[@metadata][local_time]',event.get('[@timestamp]').time.localtime('+09:00').strftime('%Y.%m.%d'))"
   }
