@@ -28,6 +28,10 @@ vi .env
 cp ./logstash/pipeline/logstash.conf.sample ./logstash/pipeline/logstash.conf
 vi ./logstash/pipeline/logstash.conf
 
+# erasticsearch用のインデックステンプレート設定（適宜変更）
+cp ./logstash/template/access_log.json.sample ./logstash/template/access_log.json
+vi ./logstash/template/access_log.json
+
 docker-compose up -d
 ```
 
