@@ -11,13 +11,6 @@ Desktop.ini
 # docker resource
 .env
 
-# elasticsearch
-elasticsearch/config/elasticsearch.yml
-
-# kibana
-kibana/config/kibana.yml
-
 # logstash
-logstash/config/logstash.yml
-logstash/config/pipelines.yml
 logstash/pipeline/logstash.conf
+logstash/template/access_log.json

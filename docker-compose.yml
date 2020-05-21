@@ -7,8 +7,6 @@ services:
     environment:
       - discovery.type=single-node
     volumes:
-      # Config
-      #- ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
       # Data 
       - elasticsearch-data:/usr/share/elasticsearch/data
     networks:
@@ -23,9 +21,6 @@ services:
       - "I18N_LOCALE=${KIBANA_LOCALE}"
     ports:
       - ${KIBANA_PORT}:5601
-    #volumes:
-      # Config
-      #- ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
     networks:
       - elk-net
 
@@ -35,11 +30,10 @@ services:
     depends_on:
       - elasticsearch
     volumes:
-      # Config
-      #- ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
-      #- ./logstash/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml
       # Pipeline
       - ./logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      # Index Template
+      - ./logstash/template:/usr/share/logstash/template
       # Input Data
       - ./logstash/input/httpd:${LOGSTASH_INPUT_DATA_PATH}
     networks:

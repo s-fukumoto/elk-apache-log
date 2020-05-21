@@ -5,21 +5,31 @@ input {
 }
 
 filter {
+  # URLデコードしておく
+  urldecode {
+    all_fields => true
+  }
+  # メッセージを個別feildへ展開
   grok {
     # 参考
     # https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/grok-patterns
     # https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/httpd
-    #match => { "message" => "%{COMBINEDAPACHELOG}" }
-    match => { "message" => '%{IPORHOST:remote_host_ip} %{HTTPDUSER:remote_log_name} %{HTTPDUSER:remote_user} \[%{HTTPDATE:received_at}\] \"(?:%{WORD:method} %{NOTSPACE:request_uri}(?: HTTP/%{NUMBER:http_version})?|%{DATA:raw_request_uri})\" %{NUMBER:http_status} (?:%{NUMBER:response_bytes}|-) \"%{NOTSPACE:referrer}\" \"%{DATA:user_agent}\"' }
-    # 個別にfieldにしたから不要
-    remove_field => [ "message" ]
+    match => { "message" => "%{HTTPD_COMBINEDLOG}" }
   }
-  # ログで記録された日時を項目にする（格納先はtargetで指定が必要。初期値は@timestamp）
+  # ログで記録された日時を日付型に変換する
   date {
-    match => [ "received_at" , "dd/MMM/yyyy:HH:mm:ss Z" ]
+    match => [ "timestamp" , "dd/MMM/yyyy:HH:mm:ss Z" ]
   }
-  # esのindexを日付単位で分けるため一時的なfeildへ格納
-  # タイムゾーン問題があり以下参考に実装
+  # UA解析
+  useragent {
+    source => "agent"
+    target => "ua"
+  }
+  # マップを利用したいので位置情報追加
+  geoip {
+    source => [ "clientip" ]
+  }
+  # elasticsearchのindexを日付単位で分けたいが、タイムゾーン問題があり以下を参考に一時的なfeildへ格納
   # https://qiita.com/hssh2_bin/items/0c4cbd1157ea230549a9
   ruby {
     code => "event.set('[@metadata][local_time]',event.get('[@timestamp]').time.localtime('+09:00').strftime('%Y.%m.%d'))"
@@ -30,6 +40,11 @@ output {
 	elasticsearch {
     hosts => "elasticsearch:9200"
     index => "access-log-%{[@metadata][local_time]}"
+    # 型定義したいので独自のIndexテンプレートを使用
+    template => "/usr/share/logstash/template/access_log.json"
+    template_name => "access-log"
+    template_overwrite => true
   }
+  # デバッグ用
   stdout { codec => rubydebug }
 }
