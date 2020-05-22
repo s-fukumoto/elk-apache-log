@@ -9,8 +9,9 @@ Desktop.ini
 .editorconfig
 
 # docker resource
-.env
+/.env
 
 # logstash
-logstash/pipeline/logstash.conf
-logstash/template/access_log.json
+/logstash/pipeline/logstash.conf
+/logstash/template/access_log.json
+/logstash/input/httpd/*
