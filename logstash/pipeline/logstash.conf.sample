@@ -5,10 +5,6 @@ input {
 }
 
 filter {
-  # URLデコードしておく
-  urldecode {
-    all_fields => true
-  }
   # メッセージを個別feildへ展開
   grok {
     # 参考
