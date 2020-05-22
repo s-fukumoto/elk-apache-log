@@ -42,5 +42,7 @@ output {
     template_overwrite => true
   }
   # デバッグ用
-  stdout { codec => rubydebug }
+  stdout {
+    codec => rubydebug { metadata => true }
+  }
 }
