@@ -5,10 +5,6 @@ input {
 }
 
 filter {
-  # URLデコードしておく
-  urldecode {
-    all_fields => true
-  }
   # メッセージを個別feildへ展開
   grok {
     # 参考
@@ -46,5 +42,7 @@ output {
     template_overwrite => true
   }
   # デバッグ用
-  stdout { codec => rubydebug }
+  stdout {
+    codec => rubydebug { metadata => true }
+  }
 }
